@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquetipos de Usuario — i-Homotic</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #2D6A2E; --green-light: #4CAF50; --green-pale: #E8F5E9;
+    --orange: #E8721A; --dark: #1B2A1B;
+    --gray-900: #212121; --gray-700: #424242; --gray-500: #757575;
+    --gray-300: #E0E0E0; --gray-100: #F5F5F5; --white: #FFFFFF;
+    --arch1: #2E7D32; --arch1-bg: #E8F5E9;
+    --arch2: #1565C0; --arch2-bg: #E3F2FD;
+    --arch3: #E65100; --arch3-bg: #FFF3E0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: var(--gray-900); }
+
+  .header {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--green-dark) 100%);
+    padding: 24px 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 18px; }
+  .logo-mark {
+    width: 46px; height: 46px; background: var(--green-light); border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 20px; color: var(--white); position: relative;
+  }
+  .logo-mark::after { content: ''; position: absolute; top: -4px; right: -4px; width: 13px; height: 13px; background: var(--orange); border-radius: 50%; }
+  .header-title { color: var(--white); font-size: 21px; font-weight: 700; }
+  .header-title span { color: var(--orange); }
+  .header-subtitle { color: rgba(255,255,255,0.6); font-size: 12.5px; margin-top: 2px; }
+  .header-badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 7px 16px; color: rgba(255,255,255,0.8); font-size: 12px; }
+
+  .tabs-container {
+    background: var(--white); padding: 0 36px; border-bottom: 2px solid var(--gray-300);
+    display: flex; align-items: stretch; gap: 0; overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 16px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    color: var(--gray-500); background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent; transition: all 0.25s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--gray-900); background: var(--gray-100); }
+  .tab-btn.active { color: var(--green-dark); border-bottom-color: var(--green-dark); }
+  .tab-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; margin-right: 8px; color: var(--white);
+  }
+  [data-arch="all"] .tab-num { background: var(--gray-500); }
+  [data-arch="1"] .tab-num { background: var(--arch1); }
+  [data-arch="2"] .tab-num { background: var(--arch2); }
+  [data-arch="3"] .tab-num { background: var(--arch3); }
+  .tab-btn.active[data-arch="all"] .tab-num { background: var(--green-dark); }
+
+  .content-area { max-width: 1100px; margin: 0 auto; padding: 32px 24px 48px; }
+
+  .overview, .archetype-detail { display: none; }
+  .overview.visible, .archetype-detail.visible { display: block; }
+  .archetype-detail.visible { animation: fadeUp 0.35s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .overview-intro { font-size: 15px; color: var(--gray-700); line-height: 1.6; max-width: 800px; margin-bottom: 32px; }
+  .overview-intro strong { color: var(--gray-900); }
+
+  .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .overview-card {
+    border-radius: 14px; padding: 28px 24px; cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden;
+  }
+  .overview-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
+  .overview-card.c1 { background: var(--arch1-bg); border: 2px solid #A5D6A7; }
+  .overview-card.c2 { background: var(--arch2-bg); border: 2px solid #90CAF9; }
+  .overview-card.c3 { background: var(--arch3-bg); border: 2px solid #FFCC80; }
+
+  .oc-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 26px; }
+  .c1 .oc-icon { background: #A5D6A7; } .c2 .oc-icon { background: #90CAF9; } .c3 .oc-icon { background: #FFCC80; }
+  .oc-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .c1 .oc-name { color: var(--arch1); } .c2 .oc-name { color: var(--arch2); } .c3 .oc-name { color: var(--arch3); }
+  .oc-tagline { font-size: 13px; color: var(--gray-700); line-height: 1.45; margin-bottom: 14px; }
+  .oc-people { font-size: 11.5px; color: var(--gray-500); line-height: 1.4; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 12px; }
+  .oc-people strong { color: var(--gray-700); }
+  .oc-arrow { position: absolute; bottom: 16px; right: 18px; font-size: 18px; opacity: 0.3; transition: opacity 0.2s; }
+  .overview-card:hover .oc-arrow { opacity: 0.7; }
+
+  .arch-hero { border-radius: 16px; padding: 36px 32px; margin-bottom: 28px; position: relative; }
+  .arch-hero.h1 { background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); }
+  .arch-hero.h2 { background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); }
+  .arch-hero.h3 { background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); }
+  .arch-hero-top { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .arch-emoji { width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; background: rgba(255,255,255,0.7); flex-shrink: 0; }
+  .arch-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .h1 .arch-name { color: var(--arch1); } .h2 .arch-name { color: var(--arch2); } .h3 .arch-name { color: var(--arch3); }
+  .arch-desc { font-size: 15px; color: var(--gray-700); line-height: 1.55; max-width: 650px; }
+  .arch-people-tag { margin-top: 14px; font-size: 12px; color: var(--gray-500); background: rgba(255,255,255,0.6); padding: 6px 14px; border-radius: 20px; display: inline-block; }
+  .arch-people-tag strong { color: var(--gray-700); }
+
+  .jtbd-box { border-radius: 12px; padding: 22px 24px; margin-bottom: 24px; border-left: 5px solid; }
+  .jtbd1 { border-color: var(--arch1); background: #F1F8E9; }
+  .jtbd2 { border-color: var(--arch2); background: #E8F0FE; }
+  .jtbd3 { border-color: var(--arch3); background: #FFF8E1; }
+  .jtbd-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .jtbd1 .jtbd-label { color: var(--arch1); } .jtbd2 .jtbd-label { color: var(--arch2); } .jtbd3 .jtbd-label { color: var(--arch3); }
+  .jtbd-text { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; font-style: italic; color: var(--gray-900); line-height: 1.5; }
+
+  .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .section-card { background: var(--white); border-radius: 12px; padding: 22px 24px; border: 1px solid var(--gray-300); }
+  .section-card.full { grid-column: 1 / -1; }
+  .sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .sc-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .sc-icon.mindset { background: #E8F5E9; } .sc-icon.behavior { background: #E3F2FD; }
+  .sc-icon.ecosystem { background: #FFF3E0; } .sc-icon.pain { background: #FCE4EC; } .sc-icon.insight { background: #F3E5F5; }
+  .sc-title { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .sc-content { font-size: 14px; color: var(--gray-700); line-height: 1.6; }
+  .sc-content ul { list-style: none; padding: 0; }
+  .sc-content li { padding: 8px 0; border-bottom: 1px solid #F0F0F0; position: relative; padding-left: 20px; }
+  .sc-content li:last-child { border-bottom: none; }
+  .sc-content li::before { content: ''; position: absolute; left: 0; top: 14px; width: 8px; height: 8px; border-radius: 50%; }
+  .pain-list li::before { background: #EF5350; } .insight-list li::before { background: #AB47BC; }
+  .behavior-list li::before { background: #42A5F5; } .mindset-list li::before { background: #66BB6A; }
+  .eco-list li::before { background: #FFA726; }
+  .sc-content li em { display: block; font-size: 12.5px; color: var(--gray-500); margin-top: 3px; font-style: italic; }
+
+  .spectrum { margin: 8px 0 14px; display: flex; flex-direction: column; gap: 14px; }
+  .spectrum-row { display: flex; align-items: center; gap: 10px; }
+  .spectrum-label { font-size: 11.5px; font-weight: 600; color: var(--gray-500); width: 130px; flex-shrink: 0; text-align: right; }
+  .spectrum-bar { flex: 1; height: 10px; background: #EEE; border-radius: 5px; position: relative; }
+  .spectrum-fill { height: 100%; border-radius: 5px; }
+  .spectrum-label-end { font-size: 11.5px; font-weight: 600; color: var(--gray-500); width: 130px; flex-shrink: 0; }
+  .s-green .spectrum-fill { background: linear-gradient(90deg, #A5D6A7, #2E7D32); }
+  .s-blue .spectrum-fill { background: linear-gradient(90deg, #90CAF9, #1565C0); }
+  .s-orange .spectrum-fill { background: linear-gradient(90deg, #FFCC80, #E65100); }
+
+  .insight-card { background: #F9F0FF; border: 1px solid #E1BEE7; border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; }
+  .insight-card:last-child { margin-bottom: 0; }
+  .insight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #7B1FA2; margin-bottom: 6px; }
+  .insight-text { font-size: 14.5px; color: var(--gray-900); line-height: 1.5; }
+  .insight-text strong { color: #6A1B9A; }
+
+  .footer { background: var(--dark); padding: 18px 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .footer-text { color: rgba(255,255,255,0.45); font-size: 11px; }
+  .footer-brand { color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 600; }
+  .footer-brand span { color: var(--orange); }
+
+  @media (max-width: 900px) {
+    .overview-grid, .section-grid { grid-template-columns: 1fr; }
+    .header, .tabs-container, .footer { padding-left: 18px; padding-right: 18px; }
+    .content-area { padding: 20px 16px 40px; }
+    .spectrum-label, .spectrum-label-end { width: 80px; font-size: 10px; }
+    .section-card.full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo-mark">iH</div>
+    <div>
+      <div class="header-title">Arquetipos de Usuario<span> · </span>i-Homotic</div>
+      <div class="header-subtitle">Investigación de usuario · Diseño de Interacción · EAFIT 2026</div>
+    </div>
+  </div>
+  <div class="header-badge">3 arquetipos · 15 entrevistas · 5 insights por arquetipo</div>
+</header>
+
+<nav class="tabs-container">
+  <button class="tab-btn active" data-arch="all" onclick="showTab('all')"><span class="tab-num">☰</span>Vista general</button>
+  <button class="tab-btn" data-arch="1" onclick="showTab('1')"><span class="tab-num">1</span>El Cauteloso Tradicional</button>
+  <button class="tab-btn" data-arch="2" onclick="showTab('2')"><span class="tab-num">2</span>El Investigador Digital</button>
+  <button class="tab-btn" data-arch="3" onclick="showTab('3')"><span class="tab-num">3</span>El Visionario Exigente</button>
+</nav>
+
+<div class="content-area">
+
+  <!-- OVERVIEW -->
+  <div class="overview visible" id="tab-all">
+    <p class="overview-intro">A partir del análisis de <strong>15 entrevistas a profundidad</strong> con propietarios colombianos de ingresos medio-altos (30–55 años), se identificaron <strong>3 arquetipos de usuario</strong> agrupados no por edad ni estrato, sino por <strong>actitudes frente al problema</strong> de buscar, evaluar y contratar servicios para el hogar.</p>
+    <div class="overview-grid">
+      <div class="overview-card c1" onclick="showTab('1')">
+        <div class="oc-icon">🛡️</div>
+        <div class="oc-name">El Cauteloso Tradicional</div>
+        <div class="oc-tagline">Confía en lo conocido. Prefiere el voz a voz sobre cualquier plataforma digital. Necesita sentir que no va a equivocarse antes de dar el paso.</div>
+        <div class="oc-people"><strong>Entrevistados:</strong> Carlos, Shirley, Jorge, Marisol</div>
+        <span class="oc-arrow">→</span>
+      </div>
+      <div class="overview-card c2" onclick="showTab('2')">
+        <div class="oc-icon">🔍</div>
+        <div class="oc-name">El Investigador Digital</div>
+        <div class="oc-tagline">Busca, compara y valida en internet antes de actuar. Necesita evidencia sólida — reseñas, videos, portafolios — para sentir confianza.</div>
+        <div class="oc-people"><strong>Entrevistados:</strong> Mauricio, William, Ilanit, Militza, Yumarli</div>
+        <span class="oc-arrow">→</span>
+      </div>
+      <div class="overview-card c3" onclick="showTab('3')">
+        <div class="oc-icon">✨</div>
+        <div class="oc-name">El Visionario Exigente</div>
+        <div class="oc-tagline">Tiene una visión clara de lo que quiere. Exige servicio integral, experiencias visuales y garantía total. Paga más por calidad.</div>
+        <div class="oc-people"><strong>Entrevistados:</strong> Carolina, Alejandro, Ángela, Cristina, José Gabriel</div>
+        <span class="oc-arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ARQUETIPO 1 ══════ -->
+  <div class="archetype-detail" id="tab-1">
+    <div class="arch-hero h1">
+      <div class="arch-hero-top">
+        <div class="arch-emoji">🛡️</div>
+        <div>
+          <div class="arch-name">El Cauteloso Tradicional</div>
+          <div class="arch-desc">No busca innovar — busca no equivocarse. Cada decisión de inversión carga con el peso de experiencias previas donde las cosas salieron mal. Prefiere lo conocido, lo recomendado por alguien cercano, y delega decisiones para protegerse del riesgo emocional de un resultado insatisfactorio.</div>
+          <div class="arch-people-tag"><strong>Representan:</strong> Carlos, Shirley, Jorge, Marisol</div>
+        </div>
+      </div>
+    </div>
+    <div class="jtbd-box jtbd1">
+      <div class="jtbd-label">Job to be done</div>
+      <div class="jtbd-text">"Necesito mejorar mi hogar para que mi familia esté cómoda y segura, pero me detiene el miedo a contratar a alguien que no cumpla, porque ya he visto cómo las malas experiencias generan desgaste y pérdida."</div>
+    </div>
+    <div class="section-grid">
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon mindset">🧠</div><div class="sc-title">Mentalidad y Actitud</div></div>
+        <div class="sc-content"><ul class="mindset-list">
+          <li>La confianza se construye con testimonios reales, no con publicidad. Si un conocido no lo recomienda, no lo contrata.</li>
+          <li>Prefiere aprender solo, a su ritmo — pero ante la frustración, abandona y pide ayuda.<em>— Shirley: "Si no me da, me frustro y más bien busco ayuda"</em></li>
+          <li>Delega decisiones importantes para no cargar con la culpa si sale mal.<em>— Shirley: "Preferí no hacerme la responsable de mi elección"</em></li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon behavior">📋</div><div class="sc-title">Comportamiento</div></div>
+        <div class="sc-content"><ul class="behavior-list">
+          <li>Cotiza con máximo 2 personas, casi siempre referidas por alguien de confianza directa.</li>
+          <li>Busca materiales online por precio, pero la mano de obra la consigue 100% por voz a voz.</li>
+          <li>Prioriza la necesidad urgente sobre lo estético: primero lo roto, después lo bonito.</li>
+          <li>Toma decisiones en familia: el que "decide" es quien tiene más experiencia con proveedores.</li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon ecosystem">🌐</div><div class="sc-title">Ecosistema de Interacción</div></div>
+        <div class="sc-content"><ul class="eco-list">
+          <li><strong>Físico:</strong> Conversaciones cara a cara con vecinos y familiares, visitas a ferreterías locales, contacto directo con el maestro de obra.</li>
+          <li><strong>Digital:</strong> WhatsApp para coordinar, búsquedas esporádicas en Google. No usa redes para buscar proveedores.</li>
+          <li><strong>Tecnología:</strong> Mínima. Puede tener Smart TV pero no integra nada más. La domótica le suena lejana.</li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon pain">😣</div><div class="sc-title">Puntos de Dolor</div></div>
+        <div class="sc-content"><ul class="pain-list">
+          <li>Desgaste físico y emocional de una remodelación: trasteos, suciedad, vivir en obra.<em>— Shirley: "Fue un desgaste tanto físico como mental"</em></li>
+          <li>No tiene forma de verificar calidad del proveedor antes de contratarlo — confía ciegamente en la palabra.</li>
+          <li>La brecha entre lo que imaginó y lo que quedó genera frustración y ansiedad.</li>
+          <li>Se siente abrumado por la tecnología cuando intenta resolver algo solo y no lo logra.</li>
+        </ul></div>
+      </div>
+      <div class="section-card full">
+        <div class="sc-header"><div class="sc-icon insight">💡</div><div class="sc-title">Insights</div></div>
+        <div class="sc-content">
+          <div class="insight-card"><div class="insight-label">Insight 1 — Confianza delegada</div><div class="insight-text">El usuario cauteloso <strong>intenta</strong> mejorar su hogar para el bienestar familiar, <strong>pero siente</strong> miedo a equivocarse en la elección del proveedor, <strong>porque cree</strong> que la única forma válida de verificar calidad es a través de alguien que ya lo vivió — no de una página web.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 2 — Escudo emocional</div><div class="insight-text">El usuario cauteloso <strong>intenta</strong> tomar buenas decisiones de inversión, <strong>pero siente</strong> temor a cargar con la culpa si algo sale mal, <strong>porque cree</strong> que delegar la decisión final a otro lo protege del fracaso emocional de un mal resultado.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 3 — Urgencia sobre aspiración</div><div class="insight-text">El usuario cauteloso <strong>intenta</strong> mantener su hogar en buen estado, <strong>pero siente</strong> que invertir en mejoras no urgentes es un lujo riesgoso, <strong>porque cree</strong> que solo lo visiblemente deteriorado justifica el esfuerzo, el costo y la incomodidad de una obra.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 4 — Tecnofobia progresiva</div><div class="insight-text">El usuario cauteloso <strong>intenta</strong> resolver problemas tecnológicos por su cuenta, <strong>pero siente</strong> frustración al no poder avanzar solo, <strong>porque cree</strong> que la tecnología debería ser inmediata y si no lo es, es porque no es para él — y abandona.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 5 — Invisibilidad del proveedor</div><div class="insight-text">El usuario cauteloso <strong>intenta</strong> encontrar un buen contratista, <strong>pero siente</strong> desconfianza ante la falta de evidencia visible, <strong>porque cree</strong> que si un proveedor no tiene personas reales que lo recomienden de viva voz, probablemente no es confiable.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-card full" style="margin-bottom:24px">
+      <div class="sc-header"><div class="sc-icon behavior">📊</div><div class="sc-title">Espectros de Comportamiento</div></div>
+      <div class="spectrum">
+        <div class="spectrum-row"><div class="spectrum-label">Reacio</div><div class="spectrum-bar s-green"><div class="spectrum-fill" style="width:25%"></div></div><div class="spectrum-label-end">Early Adopter</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">100% Análogo</div><div class="spectrum-bar s-green"><div class="spectrum-fill" style="width:20%"></div></div><div class="spectrum-label-end">100% Digital</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Voz a voz</div><div class="spectrum-bar s-green"><div class="spectrum-fill" style="width:15%"></div></div><div class="spectrum-label-end">Investigación online</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Delega decisión</div><div class="spectrum-bar s-green"><div class="spectrum-fill" style="width:30%"></div></div><div class="spectrum-label-end">Decide solo</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ARQUETIPO 2 ══════ -->
+  <div class="archetype-detail" id="tab-2">
+    <div class="arch-hero h2">
+      <div class="arch-hero-top">
+        <div class="arch-emoji">🔍</div>
+        <div>
+          <div class="arch-name">El Investigador Digital</div>
+          <div class="arch-desc">No compra por impulso ni por recomendación ciega — necesita evidencia. Antes de invertir un peso, recorre YouTube, lee reseñas, consulta ChatGPT y compara opciones. Le interesa la tecnología en el hogar, pero avanza paso a paso: prueba un dispositivo y, solo si funciona, expande. Su mayor frustración es no encontrar información suficiente para decidir.</div>
+          <div class="arch-people-tag"><strong>Representan:</strong> Mauricio, William, Ilanit, Militza, Yumarli</div>
+        </div>
+      </div>
+    </div>
+    <div class="jtbd-box jtbd2">
+      <div class="jtbd-label">Job to be done</div>
+      <div class="jtbd-text">"Necesito encontrar información confiable y verificable sobre productos y servicios para mi hogar, pero me detiene la falta de evidencia digital sólida, porque siento que sin reseñas reales, videos y portafolios, estoy apostando a ciegas."</div>
+    </div>
+    <div class="section-grid">
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon mindset">🧠</div><div class="sc-title">Mentalidad y Actitud</div></div>
+        <div class="sc-content"><ul class="mindset-list">
+          <li>La confianza se construye con datos, no con promesas. Necesita reseñas, calificaciones y experiencias de otros usuarios.</li>
+          <li>No le teme a la tecnología: la disfruta, pero es metódico — investiga antes, compara y espera el momento justo.<em>— Mauricio: "Lo primero que hago es ver si es compatible con Alexa"</em></li>
+          <li>Valora la autonomía: quiere resolver sin depender de un técnico cada vez.<em>— William: "Mi trabajo es virtual, necesito que todo funcione al 100%"</em></li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon behavior">📋</div><div class="sc-title">Comportamiento</div></div>
+        <div class="sc-content"><ul class="behavior-list">
+          <li>Investiga en Google, YouTube, ChatGPT y Google Reviews antes de cualquier compra significativa.<em>— Ilanit: "Le digo a ChatGPT: dime la marca más confiable"</em></li>
+          <li>Compra tecnología gradualmente: empieza con un dispositivo, prueba y si funciona, expande.</li>
+          <li>Para mano de obra usa recomendaciones, pero para productos se basa en reseñas digitales.</li>
+          <li>Programa mantenimientos preventivos y lleva control riguroso de los servicios del hogar.</li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon ecosystem">🌐</div><div class="sc-title">Ecosistema de Interacción</div></div>
+        <div class="sc-content"><ul class="eco-list">
+          <li><strong>Físico:</strong> Compra en grandes almacenes (Homecenter) y online (Amazon). Coordina servicios vía WhatsApp y videollamadas.</li>
+          <li><strong>Digital:</strong> Uso intensivo de Google, YouTube, ChatGPT, redes sociales para evaluación. Compara precios en múltiples plataformas.</li>
+          <li><strong>Tecnología:</strong> Ecosistema parcial o en expansión — Alexa, bombillos inteligentes, Roomba, Smart TV. Abierto a domótica si hay evidencia de que funciona.</li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon pain">😣</div><div class="sc-title">Puntos de Dolor</div></div>
+        <div class="sc-content"><ul class="pain-list">
+          <li>No encontrar reseñas suficientes para decidir — lo paraliza.<em>— Mauricio: "No hay una que tenga más de 2.000 reviews, estoy esperando"</em></li>
+          <li>Páginas web de proveedores sin videos, sin portafolio, sin testimonios verificables.</li>
+          <li>Servicios técnicos que dejan algo peor: técnicos que vienen 3 veces y no resuelven.<em>— Militza: "El técnico vino como tres veces y era un cablecito"</em></li>
+          <li>La desconexión entre comprar un producto y encontrar quién lo instale correctamente.</li>
+        </ul></div>
+      </div>
+      <div class="section-card full">
+        <div class="sc-header"><div class="sc-icon insight">💡</div><div class="sc-title">Insights</div></div>
+        <div class="sc-content">
+          <div class="insight-card"><div class="insight-label">Insight 1 — Parálisis por falta de evidencia</div><div class="insight-text">El usuario investigador <strong>intenta</strong> incorporar tecnología inteligente a su hogar, <strong>pero siente</strong> incertidumbre cuando no encuentra suficientes reseñas, <strong>porque cree</strong> que sin validación de terceros está arriesgando dinero en algo que puede fallar.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 2 — Expansión condicional</div><div class="insight-text">El usuario investigador <strong>intenta</strong> automatizar gradualmente su hogar, <strong>pero siente</strong> que necesita probar cada pieza antes de ampliar, <strong>porque cree</strong> que un ecosistema tecnológico solo es confiable cuando cada componente ha demostrado funcionar en su contexto real.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 3 — Doble estándar de confianza</div><div class="insight-text">El usuario investigador <strong>intenta</strong> contratar servicios confiables, <strong>pero siente</strong> que las reseñas online solo sirven para productos y no para mano de obra, <strong>porque cree</strong> que el trabajo humano es impredecible y solo se puede validar por alguien que ya lo vivió en persona.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 4 — Control como confort</div><div class="insight-text">El usuario investigador <strong>intenta</strong> mantener el control total sobre las condiciones de su hogar, <strong>pero siente</strong> ansiedad cuando algo escapa a su gestión, <strong>porque cree</strong> que su productividad y bienestar dependen de que todo funcione sin fallos.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 5 — El vacío del servicio postventa</div><div class="insight-text">El usuario investigador <strong>intenta</strong> resolver problemas técnicos con proveedores de servicio, <strong>pero siente</strong> frustración cuando el servicio deja las cosas peor o a medias, <strong>porque cree</strong> que pagar por un mantenimiento debería garantizar que todo quede perfecto.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-card full" style="margin-bottom:24px">
+      <div class="sc-header"><div class="sc-icon behavior">📊</div><div class="sc-title">Espectros de Comportamiento</div></div>
+      <div class="spectrum">
+        <div class="spectrum-row"><div class="spectrum-label">Reacio</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:65%"></div></div><div class="spectrum-label-end">Early Adopter</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">100% Análogo</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:75%"></div></div><div class="spectrum-label-end">100% Digital</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Voz a voz</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:70%"></div></div><div class="spectrum-label-end">Investigación online</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Delega decisión</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:75%"></div></div><div class="spectrum-label-end">Decide solo</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ARQUETIPO 3 ══════ -->
+  <div class="archetype-detail" id="tab-3">
+    <div class="arch-hero h3">
+      <div class="arch-hero-top">
+        <div class="arch-emoji">✨</div>
+        <div>
+          <div class="arch-name">El Visionario Exigente</div>
+          <div class="arch-desc">No busca un proveedor — busca un aliado. Tiene una visión clara de cómo quiere su hogar y espera que quien lo ejecute la comprenda, la enriquezca y la cumpla. Valora la calidad sobre el precio, exige transparencia total y garantías reales. Ya conoce la domótica, pero no da el paso hasta encontrar a alguien que le genere certeza absoluta.</div>
+          <div class="arch-people-tag"><strong>Representan:</strong> Carolina, Alejandro, Ángela, Cristina, José Gabriel</div>
+        </div>
+      </div>
+    </div>
+    <div class="jtbd-box jtbd3">
+      <div class="jtbd-label">Job to be done</div>
+      <div class="jtbd-text">"Necesito un proveedor que entienda mi visión y me ofrezca un servicio integral de principio a fin con garantía, pero me detiene la falta de profesionalismo del mercado, porque creo que nadie combina calidad técnica con experiencia de servicio al nivel que yo exijo."</div>
+    </div>
+    <div class="section-grid">
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon mindset">🧠</div><div class="sc-title">Mentalidad y Actitud</div></div>
+        <div class="sc-content"><ul class="mindset-list">
+          <li>Confianza se construye con experiencias inmersivas: renders, antes/después, portafolios detallados.<em>— Alejandro: "El concepto de showroom, de simulación, me parece fundamental"</em></li>
+          <li>Exige servicio integral: no quiere coordinar entre el que vende, transporta e instala.<em>— Carlos: "Un servicio integral donde todo esté, ese sería el ideal"</em></li>
+          <li>Dispuesto a pagar más si hay transparencia, cumplimiento y garantía posventa.<em>— José Gabriel: "Lo más importante es honestidad y transparencia en todo"</em></li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon behavior">📋</div><div class="sc-title">Comportamiento</div></div>
+        <div class="sc-content"><ul class="behavior-list">
+          <li>Busca referentes estéticos en redes, Pinterest e influencers — llega con una visión clara de lo que quiere.</li>
+          <li>Evalúa proveedores por su portafolio visual, trayectoria y resultados anteriores.<em>— Ángela: "Que todo esté consolidado: proyectos, crecimiento, experiencia"</em></li>
+          <li>Contrata y dirige: define lo estético, negocia alcance, exige plazos y supervisa la ejecución.</li>
+          <li>Pide referencias pero también valida de forma independiente (redes, reseñas, visitas).</li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon ecosystem">🌐</div><div class="sc-title">Ecosistema de Interacción</div></div>
+        <div class="sc-content"><ul class="eco-list">
+          <li><strong>Físico:</strong> Showrooms, exposiciones, visitas a casas de referencia. Valora contacto presencial para evaluar profesionalismo.</li>
+          <li><strong>Digital:</strong> Instagram, Pinterest, páginas web de proveedores, renders e inmersivas. Espera experiencia digital de alto nivel.<em>— Carolina: "Un espacio de cocreación digital, visual, interactivo, sería muy top"</em></li>
+          <li><strong>Tecnología:</strong> Tiene infraestructura o conocimiento de domótica. Esperando la oferta adecuada.<em>— Carolina: "Mi apartamento ya tiene ductos para domótica, pero no hemos instalado nada"</em></li>
+        </ul></div>
+      </div>
+      <div class="section-card">
+        <div class="sc-header"><div class="sc-icon pain">😣</div><div class="sc-title">Puntos de Dolor</div></div>
+        <div class="sc-content"><ul class="pain-list">
+          <li>Contratistas que no cumplen plazos: lo que debía tomar 2 semanas se convierte en 6.<em>— Carolina: "Esperan a que uno esté medio emputado para ponerse a trabajar"</em></li>
+          <li>Falta de pedagogía: el proveedor no comunica cómo quedará el resultado final.<em>— Ángela: "No tienen pedagogía para explicar cómo quedará tu casa"</em></li>
+          <li>No existe un mercado profesionalizado que combine calidad técnica + experiencia de servicio.</li>
+          <li>Riesgo de materiales de baja calidad cobrados como alta calidad.<em>— Carolina: "Te pueden meter productos que no son de alta calidad y cobrártelos como tal"</em></li>
+        </ul></div>
+      </div>
+      <div class="section-card full">
+        <div class="sc-header"><div class="sc-icon insight">💡</div><div class="sc-title">Insights</div></div>
+        <div class="sc-content">
+          <div class="insight-card"><div class="insight-label">Insight 1 — La brecha del servicio integral</div><div class="insight-text">El usuario visionario <strong>intenta</strong> ejecutar mejoras de alto nivel en su hogar, <strong>pero siente</strong> frustración al coordinar múltiples proveedores, <strong>porque cree</strong> que un servicio profesional debería ofrecer todo el paquete — materiales, mano de obra, transporte y garantía — en un solo lugar.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 2 — Ver para creer, sentir para comprar</div><div class="insight-text">El usuario visionario <strong>intenta</strong> tomar decisiones estéticas de alto impacto, <strong>pero siente</strong> inseguridad cuando el proveedor solo muestra fotos genéricas, <strong>porque cree</strong> que sin una experiencia visual inmersiva (renders, cocreación, simulación de su espacio real) está comprando a ciegas.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 3 — Confianza = cumplimiento</div><div class="insight-text">El usuario visionario <strong>intenta</strong> contratar proveedores que entreguen calidad a tiempo, <strong>pero siente</strong> desconfianza acumulada por incumplimientos repetidos, <strong>porque cree</strong> que el mercado colombiano de servicios para el hogar carece de profesionalismo y la única protección es pagar por entregable.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 4 — Domótica como promesa no cumplida</div><div class="insight-text">El usuario visionario <strong>intenta</strong> implementar domótica (ya tiene infraestructura o interés), <strong>pero siente</strong> que nadie le ofrece una experiencia de compra a la altura de la inversión, <strong>porque cree</strong> que un producto tecnológico para el hogar exige el mismo nivel de asesoría que una constructora de alto nivel.</div></div>
+          <div class="insight-card"><div class="insight-label">Insight 5 — La emocionalidad como palanca</div><div class="insight-text">El usuario visionario <strong>intenta</strong> que cada espacio refleje su identidad, <strong>pero siente</strong> que los proveedores no conectan con esa dimensión emocional, <strong>porque cree</strong> que mejorar el hogar no es solo funcional — es un acto profundamente personal que requiere un proveedor que entienda estética y emoción.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-card full" style="margin-bottom:24px">
+      <div class="sc-header"><div class="sc-icon behavior">📊</div><div class="sc-title">Espectros de Comportamiento</div></div>
+      <div class="spectrum">
+        <div class="spectrum-row"><div class="spectrum-label">Reacio</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:55%"></div></div><div class="spectrum-label-end">Early Adopter</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">100% Análogo</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:60%"></div></div><div class="spectrum-label-end">100% Digital</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Voz a voz</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:50%"></div></div><div class="spectrum-label-end">Investigación online</div></div>
+        <div class="spectrum-row"><div class="spectrum-label">Delega decisión</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:85%"></div></div><div class="spectrum-label-end">Decide solo</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-text">Fuente: 15 entrevistas semiestructuradas · Propietarios colombianos, ingresos medio-altos, 30–55 años · Universidad EAFIT · Feb 2026</div>
+  <div class="footer-brand">i-H<span>o</span>motic · Sustainable & Efficient</div>
+</footer>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.overview, .archetype-detail').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('visible');
+  document.querySelector('.tab-btn[data-arch="' + id + '"]').classList.add('active');
+  document.querySelector('.content-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
+
+<!-- ARQUETIPO 2 -->
+<div class="archetype-detail" id="tab-2">
+  <div class="arch-hero h2">
+    <div class="arch-hero-top">
+      <div class="arch-emoji">🔍</div>
+      <div>
+        <div class="arch-name">El Investigador Digital</div>
+        <div class="arch-desc">Este arquetipo no compra por impulso ni por recomendación ciega — necesita evidencia. Antes de invertir un peso, recorre YouTube, lee reseñas, consulta ChatGPT y compara opciones. Le interesa la tecnología en el hogar, pero avanza paso a paso: prueba un dispositivo y, solo si funciona, expande. Su mayor frustración es no encontrar información suficiente o confiable para decidir.</div>
+        <div class="arch-people-tag"><strong>Entrevistados representativos:</strong> Mauricio, William, Ilanit, Militza, Yumarli</div>
+      </div>
+    </div>
+  </div>
+  <div class="jtbd-box jtbd2">
+    <div class="jtbd-label">Job to be done</div>
+    <div class="jtbd-text">"Necesito encontrar información confiable y verificable sobre productos y servicios para mi hogar, pero me detiene la falta de evidencia digital sólida, porque siento que sin reseñas reales, videos y portafolios, estoy apostando a ciegas."</div>
+  </div>
+  <div class="section-grid">
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon mindset">🧠</div><div class="sc-title">Mentalidad y Actitud</div></div>
+      <div class="sc-content"><ul class="mindset-list">
+        <li>La confianza se construye con datos, no con promesas. Necesita ver reseñas, calificaciones y experiencias de otros usuarios.</li>
+        <li>No le teme a la tecnología: la disfruta, pero es metódico — investiga antes de comprar, compara alternativas y espera el momento justo.<em>— Mauricio: "Lo primero que hago es ver si es compatible con mi ecosistema Alexa"</em></li>
+        <li>Valora la autonomía: quiere poder resolver sin depender de un técnico cada vez.<em>— William: "Mi trabajo es virtual, necesito que todo funcione al 100%"</em></li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon behavior">📋</div><div class="sc-title">Comportamiento</div></div>
+      <div class="sc-content"><ul class="behavior-list">
+        <li>Investiga en Google, YouTube, ChatGPT y Google Reviews antes de cualquier compra significativa.<em>— Ilanit: "Le digo a ChatGPT: dime la marca más confiable o mejor valorada"</em></li>
+        <li>Compra tecnología de forma gradual: empieza con un dispositivo, prueba y si funciona, expande el ecosistema.</li>
+        <li>Para mano de obra usa recomendaciones, pero para productos se basa en reseñas digitales.</li>
+        <li>Programa mantenimientos preventivos y lleva control riguroso de servicios del hogar.<em>— Militza: "Le doy importancia al mantenimiento de todos los equipos"</em></li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon ecosystem">🌐</div><div class="sc-title">Ecosistema de Interacción</div></div>
+      <div class="sc-content"><ul class="eco-list">
+        <li><strong>Físico:</strong> Compra en grandes almacenes (Homecenter) y online (Amazon). Coordina servicios vía WhatsApp y videollamadas.</li>
+        <li><strong>Digital:</strong> Uso intensivo de Google, YouTube, ChatGPT, redes sociales para evaluación. Compara precios en múltiples plataformas.</li>
+        <li><strong>Tecnología en el hogar:</strong> Ecosistema parcial o en expansión — Alexa, bombillos inteligentes, Roomba, Smart TV conectado. Abierto a domótica si hay evidencia de que funciona.</li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon pain">😣</div><div class="sc-title">Puntos de Dolor</div></div>
+      <div class="sc-content"><ul class="pain-list">
+        <li>No encontrar reseñas suficientes o confiables para tomar la decisión — lo paraliza.<em>— Mauricio: "No hay una que tenga suficientes reviews sólidos, estoy esperando"</em></li>
+        <li>Páginas web de proveedores sin videos, sin portafolio, sin testimonios verificables.</li>
+        <li>Servicios técnicos que dejan algo peor de como estaba: técnicos que vienen varias veces y no resuelven.<em>— Militza: "El técnico vino como tres veces y era un cablecito"</em></li>
+        <li>La desconexión entre comprar un producto online y encontrar quién lo instale correctamente.</li>
+      </ul></div>
+    </div>
+    <div class="section-card full">
+      <div class="sc-header"><div class="sc-icon insight">💡</div><div class="sc-title">Insights</div></div>
+      <div class="sc-content">
+        <div class="insight-card"><div class="insight-label">Insight 1 — Parálisis por falta de evidencia</div><div class="insight-text">El usuario investigador <strong>intenta</strong> incorporar tecnología inteligente a su hogar, <strong>pero siente</strong> incertidumbre cuando no encuentra suficientes reseñas o experiencias verificables, <strong>porque cree</strong> que sin validación de terceros está arriesgando su dinero en algo que puede fallar.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 2 — Expansión condicional</div><div class="insight-text">El usuario investigador <strong>intenta</strong> automatizar gradualmente su hogar, <strong>pero siente</strong> que necesita probar cada pieza antes de ampliar, <strong>porque cree</strong> que un ecosistema tecnológico solo es confiable cuando cada componente ha demostrado funcionar en su contexto real.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 3 — Doble estándar de confianza</div><div class="insight-text">El usuario investigador <strong>intenta</strong> contratar servicios confiables, <strong>pero siente</strong> que las reseñas online solo sirven para productos y no para mano de obra, <strong>porque cree</strong> que el trabajo humano es impredecible y solo se puede validar por alguien que ya lo vivió en persona.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 4 — Control como confort</div><div class="insight-text">El usuario investigador <strong>intenta</strong> mantener el control total sobre las condiciones de su hogar (internet, temperatura, limpieza), <strong>pero siente</strong> ansiedad cuando algo escapa a su gestión, <strong>porque cree</strong> que su productividad y bienestar dependen de que todo funcione sin fallos.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 5 — El vacío del servicio postventa</div><div class="insight-text">El usuario investigador <strong>intenta</strong> resolver problemas técnicos del hogar con proveedores de servicio, <strong>pero siente</strong> frustración cuando el servicio deja las cosas peor o a medias, <strong>porque cree</strong> que pagar por un mantenimiento debería garantizar que todo quede perfecto, no generar nuevos problemas.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-card full" style="margin-bottom:24px">
+    <div class="sc-header"><div class="sc-icon behavior">📊</div><div class="sc-title">Espectros de Comportamiento</div></div>
+    <div class="spectrum">
+      <div class="spectrum-row"><div class="spectrum-label">Reacio</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:65%"></div></div><div class="spectrum-label-end">Early Adopter</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">100% Análogo</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:75%"></div></div><div class="spectrum-label-end">100% Digital</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">Voz a voz</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:70%"></div></div><div class="spectrum-label-end">Investigación online</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">Delega decisión</div><div class="spectrum-bar s-blue"><div class="spectrum-fill" style="width:75%"></div></div><div class="spectrum-label-end">Decide solo</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ARQUETIPO 3 -->
+<div class="archetype-detail" id="tab-3">
+  <div class="arch-hero h3">
+    <div class="arch-hero-top">
+      <div class="arch-emoji">✨</div>
+      <div>
+        <div class="arch-name">El Visionario Exigente</div>
+        <div class="arch-desc">Este arquetipo no busca un proveedor — busca un aliado creativo. Tiene una visión clara de cómo quiere su hogar y espera que la empresa entienda y materialice esa visión. Exige calidad, cumplimiento, servicio posventa y transparencia. Está dispuesto a pagar más, pero a cambio quiere una experiencia integral: materiales, mano de obra, diseño, todo coordinado. Ya conoce la domótica o tiene infraestructura lista para implementarla.</div>
+        <div class="arch-people-tag"><strong>Entrevistados representativos:</strong> Carolina, Luis Alejandro, Ángela, Cristina, José Gabriel</div>
+      </div>
+    </div>
+  </div>
+  <div class="jtbd-box jtbd3">
+    <div class="jtbd-label">Job to be done</div>
+    <div class="jtbd-text">"Necesito un servicio integral que materialice la visión que tengo para mi hogar con calidad y cumplimiento, pero me detiene la falta de proveedores que ofrezcan una experiencia completa — desde el diseño hasta la garantía posventa — sin que yo tenga que coordinar todo."</div>
+  </div>
+  <div class="section-grid">
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon mindset">🧠</div><div class="sc-title">Mentalidad y Actitud</div></div>
+      <div class="sc-content"><ul class="mindset-list">
+        <li>Piensa en su hogar como un proyecto de vida — cada mejora debe elevar la estética, la funcionalidad y el valor del espacio.<em>— Alejandro: "Poder ver el producto más allá de la foto me parece supremamente relevante"</em></li>
+        <li>Exige cumplimiento de tiempos y presupuesto. No tolera la improvisación ni las excusas.<em>— Carolina: "Te prometen 2 semanas y terminan en 6"</em></li>
+        <li>Valora la experiencia inmersiva: renders, showrooms, simulaciones. Quiere ver el resultado antes de invertir.</li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon behavior">📋</div><div class="sc-title">Comportamiento</div></div>
+      <div class="sc-content"><ul class="behavior-list">
+        <li>Usa el voz a voz como primer filtro, pero luego exige ver portafolio, referencias verificables y ejemplos de trabajos terminados.<em>— Carolina: "Si yo ya vi el producto, el trabajo, los materiales, por ahí me voy"</em></li>
+        <li>Está dispuesto a pagar más por un servicio integral que incluya diseño, materiales, instalación y posventa.</li>
+        <li>Busca cocreación con el proveedor: quiere participar en el diseño de la solución, no simplemente recibirla.</li>
+        <li>Dentro de la familia, uno elige lo estético y el otro gestiona presupuesto — hay roles definidos.<em>— Carolina: "Yo escojo lo estético, él mira cómo paga"</em></li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon ecosystem">🌐</div><div class="sc-title">Ecosistema de Interacción</div></div>
+      <div class="sc-content"><ul class="eco-list">
+        <li><strong>Físico:</strong> Visita showrooms, pide muestras, compara en tiendas especializadas. Valora el contacto presencial con el proveedor.</li>
+        <li><strong>Digital:</strong> Espera páginas profesionales con portafolio visual, videos, renders y atención personalizada e inmediata.<em>— Ángela: "Que haya respuestas inmediatas y atención personalizada"</em></li>
+        <li><strong>Tecnología en el hogar:</strong> Ya tiene infraestructura para domótica o la ha considerado activamente. Busca soluciones completas, no piezas sueltas.<em>— Carolina: "Mi apartamento tiene ductos en las paredes para domótica"</em></li>
+      </ul></div>
+    </div>
+    <div class="section-card">
+      <div class="sc-header"><div class="sc-icon pain">😣</div><div class="sc-title">Puntos de Dolor</div></div>
+      <div class="sc-content"><ul class="pain-list">
+        <li>Contratistas que no cumplen tiempos: lo que debía tomar 2 semanas se extiende indefinidamente.<em>— Yumarli: "No cumplió tiempos, pidió pagos adelantados, fue pesado"</em></li>
+        <li>No existe servicio integral en el mercado: tiene que comprar materiales en un sitio y buscar instalador por otro lado.<em>— Carlos: "Imagine que ofrecen transporte pero nunca el maestro de obra"</em></li>
+        <li>Proveedores sin presencia digital profesional: sin renders, sin videos, sin espacio de cocreación para ver el resultado antes.<em>— Alejandro: "Las empresas tienen que entender que el cliente va cambiando"</em></li>
+        <li>Riesgo de que metan materiales de baja calidad y los cobren como alta calidad.<em>— Carolina: "Te pueden meter productos que no son de alta calidad y cobrártelos como tal"</em></li>
+      </ul></div>
+    </div>
+    <div class="section-card full">
+      <div class="sc-header"><div class="sc-icon insight">💡</div><div class="sc-title">Insights</div></div>
+      <div class="sc-content">
+        <div class="insight-card"><div class="insight-label">Insight 1 — La brecha del servicio integral</div><div class="insight-text">El usuario visionario <strong>intenta</strong> transformar su hogar con una visión clara y coherente, <strong>pero siente</strong> frustración al tener que coordinar proveedores, materiales e instaladores por separado, <strong>porque cree</strong> que si una empresa realmente es profesional, debería ofrecer todo el paquete sin que el cliente sea su propio gerente de obra.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 2 — Ver para creer, creer para comprar</div><div class="insight-text">El usuario visionario <strong>intenta</strong> decidir con seguridad qué proveedor contratar, <strong>pero siente</strong> desconfianza ante la falta de experiencias visuales previas, <strong>porque cree</strong> que si no puede ver un render, una simulación o un antes/después real de su propio espacio, está comprando una promesa vacía.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 3 — El tiempo como moneda emocional</div><div class="insight-text">El usuario visionario <strong>intenta</strong> invertir en mejoras significativas para su hogar, <strong>pero siente</strong> rabia y pérdida de control cuando el contratista incumple los plazos, <strong>porque cree</strong> que el incumplimiento no es solo un retraso — es una falta de respeto a su tiempo, su confianza y su hogar.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 4 — Cocreación como diferencial</div><div class="insight-text">El usuario visionario <strong>intenta</strong> encontrar un proveedor que entienda su visión estética, <strong>pero siente</strong> que la mayoría no ofrecen espacios de diseño colaborativo, <strong>porque cree</strong> que el proceso de mejora del hogar debería ser una experiencia de cocreación — no una transacción donde uno pide y el otro ejecuta.</div></div>
+        <div class="insight-card"><div class="insight-label">Insight 5 — La emocionalidad como gatillo de compra</div><div class="insight-text">El usuario visionario <strong>intenta</strong> racionalizar su inversión en el hogar, <strong>pero siente</strong> que la decisión final es emocional — se enamora del espacio cuando lo ve renderizado más bonito de lo que es, <strong>porque cree</strong> que un hogar que refleja quién es vale cualquier inversión razonable.<em>— Carolina: "Si se lo mostrás más bonito, van a decir: ¿cuánto me vale?"</em></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-card full" style="margin-bottom:24px">
+    <div class="sc-header"><div class="sc-icon behavior">📊</div><div class="sc-title">Espectros de Comportamiento</div></div>
+    <div class="spectrum">
+      <div class="spectrum-row"><div class="spectrum-label">Reacio</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:55%"></div></div><div class="spectrum-label-end">Early Adopter</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">100% Análogo</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:60%"></div></div><div class="spectrum-label-end">100% Digital</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">Voz a voz</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:50%"></div></div><div class="spectrum-label-end">Investigación online</div></div>
+      <div class="spectrum-row"><div class="spectrum-label">Delega decisión</div><div class="spectrum-bar s-orange"><div class="spectrum-fill" style="width:80%"></div></div><div class="spectrum-label-end">Decide solo</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content-area -->
+
+<footer class="footer">
+  <div class="footer-text">Fuente: 15 entrevistas semiestructuradas · Propietarios colombianos, ingresos medio-altos, 30–55 años · Universidad EAFIT · Febrero 2026</div>
+  <div class="footer-brand">i-H<span>o</span>motic · Sustainable & Efficient</div>
+</footer>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.overview,.archetype-detail').forEach(el=>el.classList.remove('visible'));
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('visible');
+  document.querySelector('.tab-btn[data-arch="'+id+'"]').classList.add('active');
+  document.querySelector('.content-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
